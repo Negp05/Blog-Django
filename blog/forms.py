@@ -25,3 +25,6 @@ class CommentForm(forms.ModelForm):
             'email': 'Email',
             'content': 'Comentario',
         }
+
+
+        #PY.
