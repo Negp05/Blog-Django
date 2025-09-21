@@ -3,6 +3,7 @@ from django.core.paginator import Paginator
 from django.contrib import messages
 from .models import Post, Comment
 from .forms import CommentForm
+from django.contrib.auth import authenticate, login
 
 def post_list(request):
     """Vista para mostrar la lista de posts publicados"""
@@ -41,3 +42,18 @@ def post_detail(request, slug):
         'new_comment': new_comment,
         'comment_form': comment_form
     })
+
+# LOGIN
+def login_view(request):
+    if request.method == 'POST':
+        username = request.POST['username']
+        password = request.POST['password']
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            login(request, user)
+            return redirect('base')  # vista principal
+        else:
+            return render(request, 'blog/login.html', {'error': 'Usuario o contraseña incorrectos'})
+
+    return render(request, 'blog/login.html')
