@@ -5,21 +5,16 @@ from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 
 from .models import Post, Comment
+from blog.forms import SignUpForm  # <- formulario de registro
 
 def post_list(request):
-    # Solo posts publicados hasta ahora
     posts = (Post.objects
                   .filter(published=True, published_date__lte=timezone.now())
                   .order_by('-published_date', '-created_date'))
     return render(request, 'blog/post_list.html', {'posts': posts})
 
 def post_detail(request, slug):
-    # Muestra solo publicados; si quieres ver borradores como admin, quita el filter published
-    post = get_object_or_404(
-        Post,
-        slug=slug,
-        published=True
-    )
+    post = get_object_or_404(Post, slug=slug, published=True)
     comments = post.comments.filter(active=True).order_by('created_date')
     return render(request, 'blog/post_detail.html', {
         'post': post,
@@ -28,7 +23,6 @@ def post_detail(request, slug):
 
 @require_http_methods(["GET", "POST"])
 def login_view(request):
-    # Si ya está logueado, redirige a la lista
     if request.user.is_authenticated:
         return redirect('blog:post_list')
 
@@ -40,7 +34,23 @@ def login_view(request):
             login(request, user)
             messages.success(request, 'Has iniciado sesión.')
             return redirect('blog:post_list')
-        else:
-            messages.error(request, 'Usuario o contraseña incorrectos.')
+        messages.error(request, 'Usuario o contraseña incorrectos.')
 
     return render(request, 'blog/login.html')
+
+@require_http_methods(["GET", "POST"])
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('blog:post_list')
+
+    if request.method == "POST":
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()  # crea el usuario
+            messages.success(request, 'Cuenta creada. Ahora inicia sesión.')
+            return redirect('blog:login')  # te manda al login
+        messages.error(request, 'Por favor corrige los errores del formulario.')
+    else:
+        form = SignUpForm()
+
+    return render(request, 'blog/register.html', {'form': form})

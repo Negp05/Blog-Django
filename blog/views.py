@@ -6,6 +6,8 @@ from django.contrib import messages
 from posts.models import Post, Comment    
 from .forms import CommentForm
 from django.contrib.auth import authenticate, login
+from django.views.decorators.http import require_http_methods
+from blog.forms import SignUpForm
 
 def post_list(request):
     """Vista para mostrar la lista de posts publicados"""
@@ -61,3 +63,21 @@ def login_view(request):
             return render(request, 'blog/login.html', {'error': 'Usuario o contraseña incorrectos'})
 
     return render(request, 'blog/login.html')
+
+# REGISTRAR CUENTA
+@require_http_methods(["GET", "POST"])
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('blog:post_list')
+
+    if request.method == "POST":
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            form.save()  # crea el usuario
+            messages.success(request, "Cuenta creada. Ahora inicia sesión.")
+            return redirect('blog:login')  # 👈 te manda al login
+        messages.error(request, "Por favor corrige los errores del formulario.")
+    else:
+        form = SignUpForm()
+
+    return render(request, 'blog/register.html', {'form': form})

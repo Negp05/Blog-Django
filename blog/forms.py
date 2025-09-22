@@ -1,5 +1,11 @@
+# blog/forms.py
 from django import forms
-from posts.models import Comment
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.models import User
+
+# 👇 Import correcto del modelo Comment
+from blog.posts.models import Comment
+
 
 class CommentForm(forms.ModelForm):
     class Meta:
@@ -27,4 +33,15 @@ class CommentForm(forms.ModelForm):
         }
 
 
-        #PY.
+class SignUpForm(UserCreationForm):
+    email = forms.EmailField(required=True, label='Email')
+
+    class Meta:
+        model = User
+        fields = ("username", "email", "password1", "password2")
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].lower()
+        if User.objects.filter(email__iexact=email).exists():
+            raise forms.ValidationError("Ya existe un usuario con ese email.")
+        return email

@@ -1,0 +1,45 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+  <h1>Crear cuenta</h1>
+
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li class="{{ message.tags }}">{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <div>
+      <label for="{{ form.username.id_for_label }}">Usuario</label>
+      {{ form.username }}
+      {% for e in form.username.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.email.id_for_label }}">Email</label>
+      {{ form.email }}
+      {% for e in form.email.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.password1.id_for_label }}">Contraseña</label>
+      {{ form.password1 }}
+      {% for e in form.password1.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <div>
+      <label for="{{ form.password2.id_for_label }}">Repite la contraseña</label>
+      {{ form.password2 }}
+      {% for e in form.password2.errors %}<div class="error">{{ e }}</div>{% endfor %}
+    </div>
+
+    <button type="submit">Registrarme</button>
+  </form>
+
+  <p>¿Ya tienes cuenta? <a href="{% url 'blog:login' %}">Inicia sesión</a>.</p>
+{% endblock %}
