@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from .models import Post, Comment
-from .forms import CommentForm
+from .forms import CommentForm, PostForm
 
 def post_list(request):
     """Vista para mostrar la lista de posts publicados"""
@@ -24,11 +25,8 @@ def post_detail(request, slug):
     if request.method == 'POST':
         comment_form = CommentForm(data=request.POST)
         if comment_form.is_valid():
-            # Crear comentario pero no guardarlo aún
             new_comment = comment_form.save(commit=False)
-            # Asignar el post actual al comentario
             new_comment.post = post
-            # Guardar el comentario
             new_comment.save()
             messages.success(request, '¡Tu comentario ha sido añadido exitosamente!')
             return redirect('blog:post_detail', slug=post.slug)
@@ -38,6 +36,55 @@ def post_detail(request, slug):
     return render(request, 'blog/post_detail.html', {
         'post': post,
         'comments': comments,
-        'new_comment': new_comment,
         'comment_form': comment_form
     })
+
+@login_required
+def post_create(request):
+    if request.method == 'POST':
+        form = PostForm(request.POST)
+        if form.is_valid():
+            post = form.save(commit=False)
+            post.author = request.user
+            post.save()
+            messages.success(request, '¡Post creado exitosamente!')
+            return redirect('blog:post_detail', slug=post.slug)
+    else:
+        form = PostForm()
+    return render(request, 'blog/post_form.html', {'form': form})
+
+@login_required
+def post_edit(request, slug):
+    post = get_object_or_404(Post, slug=slug)
+    
+    # Verificar si el usuario actual es el autor
+    if request.user != post.author:
+        messages.error(request, "No tienes permiso para editar este post.")
+        return redirect('blog:post_detail', slug=post.slug)
+    
+    if request.method == 'POST':
+        form = PostForm(request.POST, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'El post ha sido actualizado exitosamente.')
+            return redirect('blog:post_detail', slug=post.slug)
+    else:
+        form = PostForm(instance=post)
+    
+    return render(request, 'blog/post_form.html', {'form': form, 'post': post})
+
+@login_required
+def post_delete(request, slug):
+    post = get_object_or_404(Post, slug=slug)
+    
+    # Verificar si el usuario actual es el autor
+    if request.user != post.author:
+        messages.error(request, "No tienes permiso para borrar este post.")
+        return redirect('blog:post_detail', slug=post.slug)
+        
+    if request.method == 'POST':
+        post.delete()
+        messages.success(request, 'El post ha sido borrado exitosamente.')
+        return redirect('blog:post_list')
+    
+    return render(request, 'blog/post_confirm_delete.html', {'post': post})
