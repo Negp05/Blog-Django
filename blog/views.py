@@ -1,7 +1,9 @@
+from django.urls import get_resolver
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages
-from .models import Post, Comment
+from posts.models import Post, Comment    
 from .forms import CommentForm
 from django.contrib.auth import authenticate, login
 
@@ -13,6 +15,8 @@ def post_list(request):
     paginator = Paginator(posts, 5)  # 5 posts por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    # DEBUG: imprimir namespaces registrados
+    print("Namespaces registrados:", get_resolver(None).namespace_dict)
     
     return render(request, 'blog/post_list.html', {'page_obj': page_obj})
 

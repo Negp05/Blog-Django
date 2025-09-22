@@ -1,0 +1,27 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+  <h1>Iniciar sesión</h1>
+
+  {# Mensajes (errores/éxitos) #}
+  {% if messages %}
+    <ul>
+      {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div>
+      <label for="id_username">Usuario</label>
+      <input id="id_username" name="username" type="text" required>
+    </div>
+    <div>
+      <label for="id_password">Contraseña</label>
+      <input id="id_password" name="password" type="password" required>
+    </div>
+    <button type="submit">Entrar</button>
+  </form>
+{% endblock %}

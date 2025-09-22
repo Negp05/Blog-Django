@@ -1,13 +1,7 @@
-from django.urls import path
-from . import views
-
-app_name = 'blog'
+from django.contrib import admin
+from django.urls import path, include
 
 urlpatterns = [
-    path('', views.post_list, name='post_list'),
-    path('post/<slug:slug>/', views.post_detail, name='post_detail'),
-    path('login/', views.login_view, name='login'),
+    path('admin/', admin.site.urls),
+    path('', include(('blog.posts.urls', 'blog'), namespace='blog')),
 ]
-
-
-
